@@ -6,6 +6,7 @@ import "./quiz.css";
 import QuizInitialization from "./QuizInitialization";
 import Hints from "./Hints";
 import { countryCapitalData } from "../data/data";
+import { WorldMap } from "pages";
 
 const Quiz = () => {
 
@@ -86,7 +87,6 @@ const Quiz = () => {
 				console.log("filtering")
 				filteredData = data.filter((country) => country.continent === continent);
 			}
-			console.log(filteredData);
 			filteredData.sort(() => Math.random() - 0.5);
 			setData(filteredData);
 			setGameStarted(true);
@@ -181,6 +181,7 @@ const Quiz = () => {
 									/>
 								</>
 							)}
+							<WorldMap selectedCountry={question} />
 						</div>
 					)}{" "}
 				{currentQuestionIndex > 0 && !gameFinished && (

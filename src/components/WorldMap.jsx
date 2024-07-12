@@ -3,13 +3,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-const WorldMap = ({selectedCountry}) => {
-  const [score, setScore] = useState(0);
-  const [feedback, setFeedback] = useState('');
-  const [answer, setAnswer] = useState('');
+const WorldMap = ({ selectedCountry }) => {
+  // selectedCountry = 'Solomon Islands';
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const worldGeoJSONRef = useRef(null);
+  const [worldGeoJSON, setWorldGeoJSON] = useState(null);
   const currentCountryRef = useRef(null);
 
   useEffect(() => {
@@ -51,10 +49,10 @@ const WorldMap = ({selectedCountry}) => {
 
       L.geoJSON(oceanGeoJSON, { style: oceanStyle }).addTo(mapInstanceRef.current);
 
-      fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+      fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
         .then(response => response.json())
         .then(data => {
-          worldGeoJSONRef.current = L.geoJSON(data, {
+          const geoJSONLayer = L.geoJSON(data, {
             style: feature => {
               const randomColor = `rgba(${Math.floor(Math.random() * 100)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 100)}, 0.5)`;
 
@@ -66,7 +64,7 @@ const WorldMap = ({selectedCountry}) => {
               };
             }
           }).addTo(mapInstanceRef.current);
-          nextQuestion();
+          setWorldGeoJSON(geoJSONLayer);
         });
     }
 
@@ -78,52 +76,39 @@ const WorldMap = ({selectedCountry}) => {
     };
   }, []);
 
-  const nextQuestion = () => {
-    if (!worldGeoJSONRef.current) return;
+  useEffect(() => {
+    if (selectedCountry && worldGeoJSON) {
+      markCountry();
+    }
+  }, [selectedCountry, worldGeoJSON]);
+
+  const markCountry = () => {
+    if (!worldGeoJSON) return;
 
     if (currentCountryRef.current) {
       currentCountryRef.current.setStyle({ fillColor: 'white' });
     }
-    const countries = worldGeoJSONRef.current.getLayers();
-    const selectedCountry = 'Poland';
-    const countryData = countries.find(country => country.feature.properties.name === selectedCountry);
-    currentCountryRef.current = countryData
-    currentCountryRef.current.setStyle({ fillColor: 'red' });
 
-    mapInstanceRef.current.fitBounds(currentCountryRef.current.getBounds(), { padding: [150, 150], maxZoom: 4 });
+    const countries = worldGeoJSON.getLayers();
+    const foundCountry = countries.find(country =>
+      country.feature.properties.ADMIN.toLowerCase() === selectedCountry.toLowerCase()
+    );
 
-    setAnswer('');
-    setFeedback('');
-  };
-
-  const checkAnswer = () => {
-    if (!currentCountryRef.current) return;
-
-    const userAnswer = answer.toLowerCase();
-    const correctAnswer = currentCountryRef.current.feature.properties.name.toLowerCase();
-
-    if (userAnswer === correctAnswer) {
-      setScore(prevScore => prevScore + 1);
-      setFeedback('Correct!');
+    console.log(foundCountry);
+    if (foundCountry) {
+      currentCountryRef.current = foundCountry;
+      currentCountryRef.current.setStyle({ fillColor: 'red' });
+      mapInstanceRef.current.fitBounds(currentCountryRef.current.getBounds(), { padding: [15, 15], maxZoom: 4 });
     } else {
-      setFeedback(`Incorrect. The correct answer is ${correctAnswer}.`);
+      console.warn(`Country not found: ${selectedCountry}`);
+      mapInstanceRef.current.setView([0, 0], 1);
     }
-
-    setTimeout(nextQuestion, 2000);
   };
 
   return (
-    <div>
-      <div ref={mapRef} style={{ height: '1000px', width: '1000px', backgroundColor: '#f0f0f0' }}></div>
-      <input
-        type="text"
-        value={answer}
-        onChange={(e) => setAnswer(e.target.value)}
-        placeholder="Country name"
-      />
-      <button onClick={checkAnswer}>Submit</button>
-      <div>{feedback}</div>
-      <div>Score: {score}</div>
+    <div
+      ref={mapRef}
+      style={{ height: '500px', width: '500px', backgroundColor: '#f0f0f0' }}>
     </div>
   );
 };
