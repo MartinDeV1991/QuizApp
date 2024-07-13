@@ -9,7 +9,6 @@ import { countryCapitalData } from "../data/data";
 import { WorldMap } from "pages";
 
 const Quiz = () => {
-
 	const maxQuestions = 10;
 
 	const [multipleChoice, setMultipleChoice] = useState(true);
@@ -31,9 +30,10 @@ const Quiz = () => {
 
 	const [attempts, setAttempts] = useState(0);
 
+	const [type, setType] = useState("country -> capital");
 
 	useEffect(() => {
-		
+
 	}, []);
 
 	useEffect(() => {
@@ -42,7 +42,7 @@ const Quiz = () => {
 			let answerList = data.filter((answer) => answer.continent === data[currentQuestionIndex].continent);
 			let selectedIndices = new Set();
 
-			multipleChoiceAnswers.push(data[currentQuestionIndex].capital);
+			type === 'country -> capital' ? multipleChoiceAnswers.push(data[currentQuestionIndex].capital) : multipleChoiceAnswers.push(data[currentQuestionIndex].country);
 			for (let i = 0; i < 3; i++) {
 				let index;
 				if (answerList.length > 3) {
@@ -50,15 +50,15 @@ const Quiz = () => {
 						index = Math.floor(Math.random() * answerList.length);
 					} while (selectedIndices.has(index) || index === currentQuestionIndex);
 					selectedIndices.add(index);
-					multipleChoiceAnswers.push(answerList[index].capital);
+					type === 'country -> capital' ? multipleChoiceAnswers.push(answerList[index].capital) : multipleChoiceAnswers.push(answerList[index].country);
 				} else {
 					index = Math.floor(Math.random() * answerList.length);
-					multipleChoiceAnswers.push(answerList[index].capital);
+					type === 'country -> capital' ? multipleChoiceAnswers.push(answerList[index].capital) : multipleChoiceAnswers.push(answerList[index].country);
 				}
 			}
 			setChoices(multipleChoiceAnswers);
 
-			setQuestion(data[currentQuestionIndex].country);
+			type === 'country -> capital' ? setQuestion(data[currentQuestionIndex].country) : setQuestion(data[currentQuestionIndex].capital);
 			setInput("");
 		}
 
@@ -98,7 +98,7 @@ const Quiz = () => {
 	const checkAnswer = async (answer) => {
 		setCorrect(false);
 		const userAnswer = answer;
-		const isCorrect = userAnswer.toLowerCase() === data[currentQuestionIndex].capital.toLowerCase();
+		const isCorrect = type === 'country -> capital' ? userAnswer.toLowerCase() === data[currentQuestionIndex].capital.toLowerCase() : userAnswer.toLowerCase() === data[currentQuestionIndex].country.toLowerCase();
 		const isLastQuestion = currentQuestionIndex >= Math.min(data.length, maxQuestions) - 1;
 
 		if (isCorrect || attempts >= 2) {
@@ -181,7 +181,7 @@ const Quiz = () => {
 									/>
 								</>
 							)}
-							<WorldMap selectedCountry={question} />
+							<WorldMap selectedCountry={ data[currentQuestionIndex].country } />
 						</div>
 					)}{" "}
 				{currentQuestionIndex > 0 && !gameFinished && (
@@ -194,6 +194,7 @@ const Quiz = () => {
 					handleMultipleChoiceChange={(e) => setMultipleChoice(e.target.checked)}
 					handleContinentChange={(e) => setContinent(e.target.value)}
 					countryCapitalData={countryCapitalData}
+					handleTypeChange={(e) => setType(e.target.value)}
 				/>}
 		</Container >
 	);

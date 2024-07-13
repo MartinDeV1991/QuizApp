@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import './worldMap.css';
 
 const WorldMap = ({ selectedCountry }) => {
   // selectedCountry = 'Solomon Islands';
@@ -9,14 +10,15 @@ const WorldMap = ({ selectedCountry }) => {
   const mapInstanceRef = useRef(null);
   const [worldGeoJSON, setWorldGeoJSON] = useState(null);
   const currentCountryRef = useRef(null);
+  const arrowMarkerRef = useRef(null);
 
   useEffect(() => {
     if (mapRef.current && !mapInstanceRef.current) {
       mapInstanceRef.current = L.map(mapRef.current, {
-        zoomControl: false,
+        // zoomControl: false,
         dragging: false,
         touchZoom: false,
-        scrollWheelZoom: false,
+        // scrollWheelZoom: false,
         doubleClickZoom: false,
         boxZoom: false,
         keyboard: false,
@@ -78,6 +80,7 @@ const WorldMap = ({ selectedCountry }) => {
 
   useEffect(() => {
     if (selectedCountry && worldGeoJSON) {
+      removeArrowMarker();
       markCountry();
     }
   }, [selectedCountry, worldGeoJSON]);
@@ -94,15 +97,58 @@ const WorldMap = ({ selectedCountry }) => {
       country.feature.properties.ADMIN.toLowerCase() === selectedCountry.toLowerCase()
     );
 
-    console.log(foundCountry);
     if (foundCountry) {
       currentCountryRef.current = foundCountry;
       currentCountryRef.current.setStyle({ fillColor: 'red' });
-      mapInstanceRef.current.fitBounds(currentCountryRef.current.getBounds(), { padding: [15, 15], maxZoom: 4 });
+      mapInstanceRef.current.fitBounds(currentCountryRef.current.getBounds(), { padding: [50, 50], maxZoom: calculateZoomLevel(currentCountryRef.current) });
+      const countryBounds = foundCountry.getBounds();
+      const countryCenter = countryBounds.getCenter();
+
+      // Create a custom icon for the arrow marker
+      const arrowIcon = L.divIcon({
+        className: 'custom-arrow-icon',
+        iconSize: [50, 50],
+        iconAnchor: [25, 50],
+      });
+
+      // Create a marker at the center with the arrow icon
+      arrowMarkerRef.current = L.marker(countryCenter, { icon: arrowIcon }).addTo(mapInstanceRef.current);
     } else {
       console.warn(`Country not found: ${selectedCountry}`);
       mapInstanceRef.current.setView([0, 0], 1);
     }
+  };
+  const removeArrowMarker = () => {
+    if (arrowMarkerRef.current) {
+      arrowMarkerRef.current.remove();
+      arrowMarkerRef.current = null;
+    }
+  };
+
+  const getCountrySize = (countryPolygon) => {
+    const bounds = countryPolygon.getBounds();
+    const southWest = bounds.getSouthWest();
+    const northEast = bounds.getNorthEast();
+
+    const latDiff = Math.abs(southWest.lat - northEast.lat);
+    const lngDiff = Math.abs(southWest.lng - northEast.lng);
+    const areaKm2 = latDiff * lngDiff * 111.32 * 111.32;
+
+    return areaKm2;
+  };
+
+  const calculateZoomLevel = (countryPolygon) => {
+    const countrySize = getCountrySize(countryPolygon);
+    console.log("countrySize", countrySize);
+    let zoomLevel = 2; // Default zoom level
+    if (countrySize > 1500000) {
+      zoomLevel = 2;
+    } else if (countrySize > 500000) {
+      zoomLevel = 3;
+    } else {
+      zoomLevel = 4;
+    }
+    return zoomLevel;
   };
 
   return (

@@ -3,7 +3,7 @@ import React from "react";
 import "./quiz.css";
 
 const QuizInitialization = (
-    { startGame, handleMultipleChoiceChange, handleContinentChange, countryCapitalData,
+    { startGame, handleMultipleChoiceChange, handleContinentChange, countryCapitalData, handleTypeChange
     }) => {
 
     function getContinentsList() {
@@ -16,7 +16,7 @@ const QuizInitialization = (
         return continentsList;
     }
     const options = getContinentsList();
-    
+
     return (
         <div
             style={{
@@ -32,13 +32,26 @@ const QuizInitialization = (
                 Multiple choice
             </label>
             <select id="continent-selection" onChange={handleContinentChange}>
-                
+
                 <option value="all">All</option>
                 {options.map((option) => (
                     <option key={option} value={option}>
                         {option}
                     </option>
                 ))}
+            </select>
+
+            <select id="type-selection" onChange={handleTypeChange}>
+
+                <option key="country -> capital" value="country -> capital">
+                    Country to capital
+                </option>
+                <option key="capital -> country" value="capital -> country">
+                    Capital to country
+                </option>
+                <option key="image -> country" value="image -> country">
+                    Image to country
+                </option>
             </select>
             <button onClick={startGame}>Start</button>
         </div >
