@@ -3,17 +3,11 @@ import React from "react";
 import "./quiz.css";
 
 const QuizInitialization = (
-    { startGame, handleMultipleChoiceChange, handleContinentChange, countryCapitalData, handleTypeChange
+    { startGame, countryCapitalData, gameConfig, setGameConfig
     }) => {
 
     function getContinentsList() {
-        let continentsList = [];
-        countryCapitalData.map((country) => {
-            if (!continentsList.includes(country.continent)) {
-                continentsList.push(country.continent);
-            }
-        });
-        return continentsList;
+        return Array.from(new Set(countryCapitalData.map((country) => country.continent)));
     }
     const options = getContinentsList();
 
@@ -28,11 +22,11 @@ const QuizInitialization = (
             }}
         >
             <label className="mt-2 mb-2" htmlFor="multiple-choice">
-                <input id="multiple-choice" type="checkbox" onClick={handleMultipleChoiceChange}></input>
+                <input id="multiple-choice" checked={gameConfig.multipleChoice} type="checkbox" onChange={(e) => setGameConfig((prevConfig) => ({ ...prevConfig, multipleChoice: e.target.checked }))}></input>
                 Multiple choice
             </label>
-            <select id="continent-selection" onChange={handleContinentChange}>
 
+            <select id="continent-selection" onChange={(e) => setGameConfig((prevConfig) => ({ ...prevConfig, continent: e.target.value }))}>
                 <option value="all">All</option>
                 {options.map((option) => (
                     <option key={option} value={option}>
@@ -41,8 +35,7 @@ const QuizInitialization = (
                 ))}
             </select>
 
-            <select id="type-selection" onChange={handleTypeChange}>
-
+            <select id="type-selection" onChange={(e) => setGameConfig((prevConfig) => ({ ...prevConfig, type: e.target.value }))}>
                 <option key="country -> capital" value="country -> capital">
                     Country to capital
                 </option>
@@ -57,6 +50,5 @@ const QuizInitialization = (
         </div >
     )
 };
-
 
 export default QuizInitialization;

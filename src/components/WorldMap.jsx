@@ -100,7 +100,7 @@ const WorldMap = ({ selectedCountry }) => {
     if (foundCountry) {
       currentCountryRef.current = foundCountry;
       currentCountryRef.current.setStyle({ fillColor: 'red' });
-      mapInstanceRef.current.fitBounds(currentCountryRef.current.getBounds(), { padding: [50, 50], maxZoom: calculateZoomLevel(currentCountryRef.current) });
+      mapInstanceRef.current.fitBounds(currentCountryRef.current.getBounds(), { padding: [50, 50], maxZoom: calculateZoomLevel(currentCountryRef.current), animate: false });
       const countryBounds = foundCountry.getBounds();
       const countryCenter = countryBounds.getCenter();
 

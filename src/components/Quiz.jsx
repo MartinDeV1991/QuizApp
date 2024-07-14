@@ -1,6 +1,4 @@
-import React from "react";
-import { useEffect, useState } from "react";
-
+import React, { useEffect, useState } from "react";
 import { Form, Button, Container } from "react-bootstrap";
 import "./quiz.css";
 import QuizInitialization from "./QuizInitialization";
@@ -10,193 +8,162 @@ import { WorldMap } from "pages";
 
 const Quiz = () => {
 	const maxQuestions = 10;
-
-	const [multipleChoice, setMultipleChoice] = useState(true);
-	const [choices, setChoices] = useState([]);
-
-	const [input, setInput] = useState("");
-	const [question, setQuestion] = useState("");
-	const [feedback, setFeedback] = useState("");
-	const [correct, setCorrect] = useState(false);
-	const [displayInput, setDisplayInput] = useState(true);
-
-	const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+	const [gameConfig, setGameConfig] = useState({
+		multipleChoice: true,
+		type: "country -> capital",
+		continent: "all",
+	});
 	const [data, setData] = useState([]);
-
-
-	const [continent, setContinent] = useState("all");
-	const [gameStarted, setGameStarted] = useState(false);
-	const [gameFinished, setGameFinished] = useState(false);
-
-	const [attempts, setAttempts] = useState(0);
-
-	const [type, setType] = useState("country -> capital");
-
-	useEffect(() => {
-
-	}, []);
+	const [gameState, setGameState] = useState({
+		choices: [],
+		input: "",
+		feedback: "",
+		correct: false,
+		displayInput: true,
+		currentQuestionIndex: 0,
+		gameStarted: false,
+		gameFinished: false,
+		attempts: 0,
+	});
 
 	useEffect(() => {
 		if (data.length > 0) {
-			let multipleChoiceAnswers = [];
-			let answerList = data.filter((answer) => answer.continent === data[currentQuestionIndex].continent);
-			let selectedIndices = new Set();
-
-			type === 'country -> capital' ? multipleChoiceAnswers.push(data[currentQuestionIndex].capital) : multipleChoiceAnswers.push(data[currentQuestionIndex].country);
-			for (let i = 0; i < 3; i++) {
-				let index;
-				if (answerList.length > 3) {
-					do {
-						index = Math.floor(Math.random() * answerList.length);
-					} while (selectedIndices.has(index) || index === currentQuestionIndex);
-					selectedIndices.add(index);
-					type === 'country -> capital' ? multipleChoiceAnswers.push(answerList[index].capital) : multipleChoiceAnswers.push(answerList[index].country);
-				} else {
-					index = Math.floor(Math.random() * answerList.length);
-					type === 'country -> capital' ? multipleChoiceAnswers.push(answerList[index].capital) : multipleChoiceAnswers.push(answerList[index].country);
-				}
-			}
-			setChoices(multipleChoiceAnswers);
-
-			type === 'country -> capital' ? setQuestion(data[currentQuestionIndex].country) : setQuestion(data[currentQuestionIndex].capital);
-			setInput("");
+			const answerList = data.filter(
+				(answer) => answer.continent === data[gameState.currentQuestionIndex].continent
+			);
+			const multipleChoiceAnswers = generateMultipleChoiceAnswers(answerList);
+			setGameState((prev) => ({ ...prev, choices: multipleChoiceAnswers, input: "" }));
 		}
+	}, [gameState.currentQuestionIndex, data]);
 
-	}, [currentQuestionIndex, data]);
-
-	const restartQuiz = () => {
-		setCurrentQuestionIndex(0);
-		setGameStarted(false);
-		setGameFinished(false);
+	const generateMultipleChoiceAnswers = (answerList) => {
+		const correctAnswer = gameConfig.type === 'country -> capital'
+			? data[gameState.currentQuestionIndex].capital
+			: data[gameState.currentQuestionIndex].country;
+		const otherAnswers = answerList
+			.filter((_, index) => index !== gameState.currentQuestionIndex)
+			.map(item => gameConfig.type === 'country -> capital' ? item.capital : item.country)
+			.sort(() => 0.5 - Math.random())
+			.slice(0, 3);
+		return [correctAnswer, ...otherAnswers].sort(() => 0.5 - Math.random());
 	};
 
-	const handleInputChange = (e) => {
-		setInput(e.target.value);
+	const restartQuiz = () => setGameState((prev) => ({ ...prev, currentQuestionIndex: 0, gameStarted: false, gameFinished: false }));
+
+	const startGame = () => {
+		console.log(gameState)
+		const filteredData = gameConfig.continent === "all"
+			? countryCapitalData
+			: countryCapitalData.filter((country) => country.continent === gameConfig.continent);
+		setData(filteredData.sort(() => Math.random() - 0.5));
+		setGameState({
+			choices: [],
+			input: "",
+			feedback: "",
+			correct: false,
+			displayInput: true,
+			currentQuestionIndex: 0,
+			gameStarted: true,
+			gameFinished: false,
+			attempts: 0
+		});
 	};
 
-	const submitAnswer = async (e) => {
-		e.preventDefault();
-		checkAnswer(input);
-	}
+	const checkAnswer = (answer) => {
+		const isCorrect = answer.toLowerCase() === (gameConfig.type === 'country -> capital'
+			? data[gameState.currentQuestionIndex].capital.toLowerCase()
+			: data[gameState.currentQuestionIndex].country.toLowerCase());
+		const isLastQuestion = gameState.currentQuestionIndex >= Math.min(data.length, maxQuestions) - 1;
 
-	const startGame = async () => {
-		try {
-			const data = countryCapitalData;
-			let filteredData = data;
-			if (continent !== "all") {
-				console.log("filtering")
-				filteredData = data.filter((country) => country.continent === continent);
-			}
-			filteredData.sort(() => Math.random() - 0.5);
-			setData(filteredData);
-			setGameStarted(true);
-		} catch (error) {
-			console.log(error);
-		}
-	};
-
-	const checkAnswer = async (answer) => {
-		setCorrect(false);
-		const userAnswer = answer;
-		const isCorrect = type === 'country -> capital' ? userAnswer.toLowerCase() === data[currentQuestionIndex].capital.toLowerCase() : userAnswer.toLowerCase() === data[currentQuestionIndex].country.toLowerCase();
-		const isLastQuestion = currentQuestionIndex >= Math.min(data.length, maxQuestions) - 1;
-
-		if (isCorrect || attempts >= 2) {
-			setCorrect(isCorrect);
-			const feedbackMessage = `You answered ${isCorrect ? "correctly" : "incorrectly"}. The answer was "${data[currentQuestionIndex].capital}".`;
-
-			setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-			if (!isLastQuestion) {
-				setDisplayInput(false);
-				setFeedback(feedbackMessage);
-				setTimeout(() => {
-					setAttempts(0);
-					setDisplayInput(true);
-				}, 1000);
-			} else if (isLastQuestion) {
-				setInput("");
-				setDisplayInput(false);
-				setTimeout(() => {
-					setGameFinished(true);
-					setGameStarted(false);
-					setFeedback("Congratulations! You completed the quiz.");
-				}, 3000);
-			}
+		if (isCorrect || gameState.attempts >= 2) {
+			handleCorrectAnswer(isCorrect, isLastQuestion);
 		} else {
-			setFeedback("Incorrect. Try again.");
-			setAttempts(attempts + 1);
+			setGameState((prev) => ({ ...prev, feedback: "Incorrect. Try again.", attempts: prev.attempts + 1 }));
 		}
 	};
 
+	const handleCorrectAnswer = (isCorrect, isLastQuestion) => {
+		const feedbackMessage = `You answered ${isCorrect ? "correctly" : "incorrectly"}. The answer was "${data[gameState.currentQuestionIndex].capital}".`;
+		setGameState((prev) => ({
+			...prev,
+			correct: isCorrect,
+			currentQuestionIndex: prev.currentQuestionIndex + 1,
+			displayInput: false,
+			feedback: feedbackMessage,
+		}));
+
+		setTimeout(() => {
+			if (isLastQuestion) {
+				setGameState((prev) => ({
+					...prev,
+					gameFinished: true,
+					gameStarted: false,
+					feedback: "Congratulations! You completed the quiz.",
+				}));
+			} else {
+				setGameState((prev) => ({ ...prev, attempts: 0, displayInput: true }));
+			}
+		}, isLastQuestion ? 3000 : 1000);
+	};
+
+	const question = gameState.gameStarted
+		? (gameConfig.type === 'country -> capital'
+			? data[gameState.currentQuestionIndex].country
+			: data[gameState.currentQuestionIndex].capital)
+		: "";
 
 	return (
 		<Container className="mt-4">
 			<div style={{ width: '50%' }}>
 				<h1>Quiz Game with Hints</h1>
-				<div style={{ color: correct === true ? "green" : "red", fontSize: "30px", display: !gameFinished ? "none" : "block" }}>{feedback}</div>
-				{gameStarted &&
-					!gameFinished && (
-						<div>
-							<div style={{ display: displayInput ? "block" : "none" }}>
-								<div><strong>Question #{currentQuestionIndex + 1}</strong></div>
+				{gameState.gameFinished && <div style={{ color: gameState.correct ? "green" : "red", fontSize: "30px" }}>{gameState.feedback}</div>}
+				{gameState.gameStarted && !gameState.gameFinished && (
+					<div>
+						{gameState.displayInput ? (
+							<>
+								<div><strong>Question #{gameState.currentQuestionIndex + 1}</strong></div>
 								<div>Translate: <strong>{question}</strong></div>
-							</div>
-							<div style={{ color: correct === true ? "green" : "red", fontSize: "30px", display: displayInput ? "none" : "block" }}>{feedback}</div>
-
-							{displayInput && (
-								<>
-									{!multipleChoice && (
-										<Form onSubmit={submitAnswer} className="mb-5">
-											<Form.Group controlId="inputBox">
-												<Form.Control
-													type="text"
-													placeholder="Type your answer here"
-													onChange={handleInputChange}
-													style={{ width: "300px", display: displayInput ? "block" : "none" }}
-												/>
-											</Form.Group>
-											<Button variant="primary" type="submit">
-												Submit
-											</Button>
-										</Form>
-									)}
-									{multipleChoice && (
-										<div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', justifyContent: 'start', width: '20%' }}>
-											{choices.map((choice, index) => (
-												<button
-													key={index}
-													type="button"
-													onClick={() => checkAnswer(choice)}
-													style={{ width: '100%', height: '50px', margin: '0', padding: '0', backgroundColor: 'rgb(0, 200, 250, 1)' }}
-												>
-													{choice}
-												</button>
-											))}
-										</div>
-									)}
-									<div>You have had {attempts} attempts for this question.</div>
-									<Hints
-										answers={data.map((d) => d.capital)}
-										currentQuestionIndex={currentQuestionIndex}
-									/>
-								</>
-							)}
-							<WorldMap selectedCountry={ data[currentQuestionIndex].country } />
-						</div>
-					)}{" "}
-				{currentQuestionIndex > 0 && !gameFinished && (
-					<Button onClick={restartQuiz}>Restart</Button>
+								{gameConfig.multipleChoice ? (
+									<div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', justifyContent: 'start', width: '20%' }}>
+										{gameState.choices.map((choice, index) => (
+											<button key={index} onClick={() => checkAnswer(choice)} style={{ width: '100%', height: '50px', margin: '0', padding: '0', backgroundColor: 'rgb(0, 200, 250, 1)' }}>
+												{choice}
+											</button>
+										))}
+									</div>
+								) : (
+									<Form onSubmit={(e) => { e.preventDefault(); checkAnswer(gameState.input); }} className="mb-5">
+										<Form.Group controlId="inputBox">
+											<Form.Control
+												type="text"
+												placeholder="Type your answer here"
+												onChange={(e) => setGameState((prev) => ({ ...prev, input: e.target.value }))}
+												style={{ width: "300px" }}
+											/>
+										</Form.Group>
+										<Button variant="primary" type="submit">Submit</Button>
+									</Form>
+								)}
+								<div>You have had {gameState.attempts} attempts for this question.</div>
+								<Hints answers={data.map((d) => d.capital)} currentQuestionIndex={gameState.currentQuestionIndex} />
+							</>
+						) : (
+							<div style={{ color: gameState.correct ? "green" : "red", fontSize: "30px" }}>{gameState.feedback}</div>
+						)}
+						<WorldMap selectedCountry={data[gameState.currentQuestionIndex].country} />
+					</div>
 				)}
+				{gameState.currentQuestionIndex > 0 && !gameState.gameFinished && <Button onClick={restartQuiz}>Restart</Button>}
 			</div>
-			{!gameStarted &&
+			{!gameState.gameStarted && (
 				<QuizInitialization
 					startGame={startGame}
-					handleMultipleChoiceChange={(e) => setMultipleChoice(e.target.checked)}
-					handleContinentChange={(e) => setContinent(e.target.value)}
+					gameConfig={gameConfig}
+					setGameConfig={setGameConfig}
 					countryCapitalData={countryCapitalData}
-					handleTypeChange={(e) => setType(e.target.value)}
-				/>}
-		</Container >
+				/>
+			)}
+		</Container>
 	);
 };
 
