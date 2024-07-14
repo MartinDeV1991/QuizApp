@@ -104,14 +104,12 @@ const WorldMap = ({ selectedCountry }) => {
       const countryBounds = foundCountry.getBounds();
       const countryCenter = countryBounds.getCenter();
 
-      // Create a custom icon for the arrow marker
       const arrowIcon = L.divIcon({
         className: 'custom-arrow-icon',
         iconSize: [50, 50],
         iconAnchor: [25, 50],
       });
 
-      // Create a marker at the center with the arrow icon
       arrowMarkerRef.current = L.marker(countryCenter, { icon: arrowIcon }).addTo(mapInstanceRef.current);
     } else {
       console.warn(`Country not found: ${selectedCountry}`);
@@ -139,7 +137,6 @@ const WorldMap = ({ selectedCountry }) => {
 
   const calculateZoomLevel = (countryPolygon) => {
     const countrySize = getCountrySize(countryPolygon);
-    console.log("countrySize", countrySize);
     let zoomLevel = 2; // Default zoom level
     if (countrySize > 1500000) {
       zoomLevel = 2;

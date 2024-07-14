@@ -1,5 +1,5 @@
 import HomePage from "./HomePage";
-import QuizPage from "./QuizPage";
+import QuizPage from "./QuizPage/QuizPage";
 import LoginPage from "./LoginPage";
 import SignUpPage from "./SignUpPage";
 import WorldMap from "../components/WorldMap";

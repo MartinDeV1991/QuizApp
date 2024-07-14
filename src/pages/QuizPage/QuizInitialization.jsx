@@ -2,26 +2,12 @@ import React from "react";
 
 import "./quiz.css";
 
-const QuizInitialization = (
-    { startGame, countryCapitalData, gameConfig, setGameConfig
-    }) => {
-
-    function getContinentsList() {
-        return Array.from(new Set(countryCapitalData.map((country) => country.continent)));
-    }
-    const options = getContinentsList();
+const QuizInitialization = ({ startGame, countryCapitalData, gameConfig, setGameConfig }) => {
+    const options = Array.from(new Set(countryCapitalData.map((country) => country.continent)));
 
     return (
-        <div
-            style={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "flex-start",
-                width: "15%",
-                marginBottom: '50px'
-            }}
-        >
-            <label className="mt-2 mb-2" htmlFor="multiple-choice">
+        <div className="initialization-container">
+            <label htmlFor="multiple-choice">
                 <input id="multiple-choice" checked={gameConfig.multipleChoice} type="checkbox" onChange={(e) => setGameConfig((prevConfig) => ({ ...prevConfig, multipleChoice: e.target.checked }))}></input>
                 Multiple choice
             </label>
