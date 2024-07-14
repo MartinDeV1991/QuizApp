@@ -2,8 +2,13 @@ import React from "react";
 
 import "./quiz.css";
 
-const QuizInitialization = ({ startGame, countryCapitalData, gameConfig, setGameConfig }) => {
-    const options = Array.from(new Set(countryCapitalData.map((country) => country.continent)));
+const QuizInitialization = ({ startQuiz, countryCapitalData, gameConfig, setGameConfig }) => {
+    const continentOptions = Array.from(new Set(countryCapitalData.map((country) => country.continent)));
+    const questionDirection = [
+        { key: "country -> capital", value: "country -> capital", label: "Country to capital" },
+        { key: "capital -> country", value: "capital -> country", label: "Capital to country" },
+        { key: "image -> country", value: "image -> country", label: "Image to country" }
+    ];
 
     return (
         <div className="initialization-container">
@@ -14,7 +19,7 @@ const QuizInitialization = ({ startGame, countryCapitalData, gameConfig, setGame
 
             <select id="continent-selection" onChange={(e) => setGameConfig((prevConfig) => ({ ...prevConfig, continent: e.target.value }))}>
                 <option value="all">All</option>
-                {options.map((option) => (
+                {continentOptions.map((option) => (
                     <option key={option} value={option}>
                         {option}
                     </option>
@@ -22,17 +27,13 @@ const QuizInitialization = ({ startGame, countryCapitalData, gameConfig, setGame
             </select>
 
             <select id="type-selection" onChange={(e) => setGameConfig((prevConfig) => ({ ...prevConfig, type: e.target.value }))}>
-                <option key="country -> capital" value="country -> capital">
-                    Country to capital
-                </option>
-                <option key="capital -> country" value="capital -> country">
-                    Capital to country
-                </option>
-                <option key="image -> country" value="image -> country">
-                    Image to country
-                </option>
+                {questionDirection.map((option) => (
+                    <option key={option.key} value={option.value}>
+                        {option.label}
+                    </option>
+                ))}
             </select>
-            <button onClick={startGame}>Start</button>
+            <button onClick={startQuiz}>Start</button>
         </div >
     )
 };

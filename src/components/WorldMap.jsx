@@ -4,7 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import './worldMap.css';
 
-const WorldMap = ({ selectedCountry }) => {
+const WorldMap = ({ selectedCountry, showArrow }) => {
   // selectedCountry = 'Solomon Islands';
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -101,16 +101,19 @@ const WorldMap = ({ selectedCountry }) => {
       currentCountryRef.current = foundCountry;
       currentCountryRef.current.setStyle({ fillColor: 'red' });
       mapInstanceRef.current.fitBounds(currentCountryRef.current.getBounds(), { padding: [50, 50], maxZoom: calculateZoomLevel(currentCountryRef.current), animate: false });
-      const countryBounds = foundCountry.getBounds();
-      const countryCenter = countryBounds.getCenter();
 
-      const arrowIcon = L.divIcon({
-        className: 'custom-arrow-icon',
-        iconSize: [50, 50],
-        iconAnchor: [25, 50],
-      });
+      if (showArrow) {
+        const countryBounds = foundCountry.getBounds();
+        const countryCenter = countryBounds.getCenter();
 
-      arrowMarkerRef.current = L.marker(countryCenter, { icon: arrowIcon }).addTo(mapInstanceRef.current);
+        const arrowIcon = L.divIcon({
+          className: 'custom-arrow-icon',
+          iconSize: [50, 50],
+          iconAnchor: [25, 50],
+        });
+
+        arrowMarkerRef.current = L.marker(countryCenter, { icon: arrowIcon }).addTo(mapInstanceRef.current);
+      }
     } else {
       console.warn(`Country not found: ${selectedCountry}`);
       mapInstanceRef.current.setView([0, 0], 1);
@@ -137,7 +140,7 @@ const WorldMap = ({ selectedCountry }) => {
 
   const calculateZoomLevel = (countryPolygon) => {
     const countrySize = getCountrySize(countryPolygon);
-    let zoomLevel = 2; // Default zoom level
+    let zoomLevel = 2;
     if (countrySize > 1500000) {
       zoomLevel = 2;
     } else if (countrySize > 500000) {
