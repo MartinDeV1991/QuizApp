@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { Button } from "react-bootstrap";
 
 const Hints = ({ answers, currentQuestionIndex }) => {
-
     const [hint1, setHint1] = useState(false);
 
     useEffect(() => {
@@ -13,7 +12,6 @@ const Hints = ({ answers, currentQuestionIndex }) => {
     return (
         <div>
             <Button onClick={() => setHint1(!hint1)}>Hint 1</Button>
-
             {
                 hint1 && (
                     <div>

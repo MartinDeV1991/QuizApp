@@ -1,17 +1,38 @@
 
 import React from "react";
 import Hints from "./Hints";
+import WorldMap from "components/Map/WorldMap";
 
-const QuizContent = ({ gameState, setGameState,
-    gameConfig,
-    dataRef, inputRef,
-    generateMultipleChoiceAnswers }) => {
+const QuizContent = ({ gameState, setGameState, gameConfig, dataRef, inputRef, generateMultipleChoiceAnswers }) => {
+    let question = getQuestion();
 
-    const question = gameState.currentQuestionIndex >= 0
-        ? (gameConfig.type === 'country -> capital'
-            ? dataRef.current[gameState.currentQuestionIndex].country
-            : dataRef.current[gameState.currentQuestionIndex].capital)
-        : "";
+    function getQuestion() {
+        let question = "";
+        if (gameConfig.type === 'country -> capital') {
+            question = dataRef.current[gameState.currentQuestionIndex].country
+        } else if (gameConfig.type === 'capital -> country') {
+            question = dataRef.current[gameState.currentQuestionIndex].capital
+        } else if (gameConfig.type === 'image -> country') {
+            question = "What country is this shown on the map?";
+        } else if (gameConfig.type === 'country -> image') {
+            question = dataRef.current[gameState.currentQuestionIndex].country
+        }
+        return question;
+    }
+
+    const setNextQuestion = () => {
+        const newQuestionIndex = gameState.currentQuestionIndex + 1;
+        const newChoices = generateMultipleChoiceAnswers(dataRef.current, gameConfig.type, newQuestionIndex);
+
+        setGameState((prev) => ({
+            ...prev,
+            currentQuestionIndex: newQuestionIndex,
+            feedback: "",
+            attempts: 0,
+            answered: false,
+            choices: newChoices,
+        }));
+    }
 
     const checkAnswer = (answer) => {
         const isCorrect = answer.toLowerCase() === (gameConfig.type === 'country -> capital'
@@ -58,7 +79,7 @@ const QuizContent = ({ gameState, setGameState,
         }));
     };
 
-    function renderMultipleChoice() {
+    const renderMultipleChoice = () => {
         return (
             !gameState.answered &&
             <div className="multiple-choice-container">
@@ -75,7 +96,7 @@ const QuizContent = ({ gameState, setGameState,
         );
     }
 
-    function renderInputForm() {
+    const renderInputForm = () => {
         return (
             <div className="input-container">
                 <input
@@ -96,41 +117,36 @@ const QuizContent = ({ gameState, setGameState,
         );
     }
 
-    const setNextQuestion = () => {
-        const newQuestionIndex = gameState.currentQuestionIndex + 1;
-        const newChoices = generateMultipleChoiceAnswers(dataRef.current, gameConfig.type, newQuestionIndex);
-
-        setGameState((prev) => ({
-            ...prev,
-            currentQuestionIndex: newQuestionIndex,
-            feedback: "",
-            attempts: 0,
-            answered: false,
-            choices: newChoices,
-        }));
-    }
-
     return (
-        <div className="game-content-container">
-            <h2>#{gameState.currentQuestionIndex + 1}: {question}</h2>
-            {gameConfig.multipleChoice ? renderMultipleChoice() : renderInputForm()}
+        <div style={{ display: 'flex' }}>
+            <div className="game-content-container">
+                <h2>#{gameState.currentQuestionIndex + 1}: {question}</h2>
+                {gameConfig.type !== "country -> image" && (gameConfig.multipleChoice ? renderMultipleChoice() : renderInputForm())}
 
-            {!gameState.answered && (
-                <div>You have had {gameState.attempts} attempts for this question.
-                    <Hints
-                        answers={dataRef.current.map((d) => d.capital)}
-                        currentQuestionIndex={gameState.currentQuestionIndex}
-                    />
+                {!gameState.answered && (
+                    <div>You have had {gameState.attempts} attempts for this question.
+                        <Hints
+                            answers={dataRef.current.map((d) => d.capital)}
+                            currentQuestionIndex={gameState.currentQuestionIndex}
+                        />
+                    </div>
+                )}
+                <div className="game-status">
+                    {gameState.feedback}
                 </div>
-            )}
-            <div className="game-status">
-                {gameState.feedback}
+                {gameState.answered && (
+                    <button className="btn btn-primary" onClick={setNextQuestion}>
+                        Next question
+                    </button>
+                )}
+
             </div>
-            {gameState.answered && (
-                <button className="btn btn-primary" onClick={setNextQuestion}>
-                    Next question
-                </button>
-            )}
+            <WorldMap
+                selectedCountry={dataRef.current[gameState.currentQuestionIndex].country}
+                showArrow={dataRef.current[gameState.currentQuestionIndex].population < 1000000}
+                checkAnswer={checkAnswer}
+                mapClick={gameConfig.type === "country -> image"}
+            />
         </div>
     )
 };

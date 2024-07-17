@@ -3,7 +3,6 @@ import { Button } from "react-bootstrap";
 import "./quiz.css";
 import QuizInitialization from "./QuizInitialization";
 import { countryCapitalData } from "../../data/data";
-import { WorldMap } from "pages";
 import QuizContent from "./QuizContent.jsx";
 
 const generateMultipleChoiceAnswers = (data, type, currentQuestionIndex) => {
@@ -64,6 +63,14 @@ const Quiz = () => {
     return (
         <div className="quiz-container">
             <div>
+                {gameState.status === "initialization" &&
+                    <QuizInitialization
+                        startQuiz={startQuiz}
+                        gameConfig={gameConfig}
+                        setGameConfig={setGameConfig}
+                        countryCapitalData={countryCapitalData}
+                    />
+                }
                 {gameState.status === "playing" &&
                     <QuizContent
                         gameState={gameState}
@@ -75,24 +82,9 @@ const Quiz = () => {
                     />
                 }
                 {gameState.status !== "initialization" &&
-                    <Button onClick={restartQuiz}>Restart</Button>
-                }
-
-                {gameState.status === "initialization" &&
-                    <QuizInitialization
-                        startQuiz={startQuiz}
-                        gameConfig={gameConfig}
-                        setGameConfig={setGameConfig}
-                        countryCapitalData={countryCapitalData}
-                    />
+                    <Button className="restart-button" onClick={restartQuiz}>Restart</Button>
                 }
             </div>
-            {gameState.status === "playing" &&
-                <WorldMap
-                    selectedCountry={dataRef.current[gameState.currentQuestionIndex].country}
-                    showArrow={dataRef.current[gameState.currentQuestionIndex].population < 1000000}
-                />
-            }
         </div>
     );
 };

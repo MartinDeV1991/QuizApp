@@ -18,3 +18,9 @@
     background-color: #007bff;
     /* border-top: 10px solid #007bff; Change color as needed */
   }
+
+  .world-map {
+    height: 500px;
+    width: 500px;
+    background-color: #f0f0f0;
+  }

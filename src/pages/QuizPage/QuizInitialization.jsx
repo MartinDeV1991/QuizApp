@@ -1,5 +1,6 @@
 import React from "react";
 
+import { Button } from "react-bootstrap";
 import "./quiz.css";
 
 const QuizInitialization = ({ startQuiz, countryCapitalData, gameConfig, setGameConfig }) => {
@@ -7,7 +8,8 @@ const QuizInitialization = ({ startQuiz, countryCapitalData, gameConfig, setGame
     const questionDirection = [
         { key: "country -> capital", value: "country -> capital", label: "Country to capital" },
         { key: "capital -> country", value: "capital -> country", label: "Capital to country" },
-        { key: "image -> country", value: "image -> country", label: "Image to country" }
+        { key: "image -> country", value: "image -> country", label: "Image to country" },
+        { key: "country -> image", value: "country -> image", label: "Country to image" }
     ];
 
     return (
@@ -33,7 +35,7 @@ const QuizInitialization = ({ startQuiz, countryCapitalData, gameConfig, setGame
                     </option>
                 ))}
             </select>
-            <button onClick={startQuiz}>Start</button>
+            <Button onClick={startQuiz}>Start</Button>
         </div >
     )
 };

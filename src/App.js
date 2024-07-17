@@ -4,10 +4,7 @@ import "./App.css";
 import { ToastContainer } from "react-toastify";
 import {
 	HomePage,
-	LoginPage,
 	QuizPage,
-	SignUpPage,
-	WorldMap,
 } from "./pages";
 import TopNav from "partials/TopNav";
 import Footer from "partials/Footer";
@@ -18,10 +15,7 @@ function App() {
 			<TopNav />
 			<Routes>
 				<Route path="/" element={<HomePage />} />
-				<Route path="/login" element={<LoginPage />} />
-				<Route path="/signup" element={<SignUpPage />} />
 				<Route path="/quiz" element={<QuizPage />} />
-				<Route path="mapquiz" element={<WorldMap />} />
 			</Routes>
 			<ToastContainer
 				position="top-right"
